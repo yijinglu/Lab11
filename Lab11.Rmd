@@ -1,0 +1,65 @@
+---
+title: "Lab11"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(microbenchmark)
+library(tidyverse)
+library(cowplot)
+```
+
+# 1. Write a function that generates numbers from binomial(n, p) distribution using runif() function. Hint: binomial(n, p) random variable can be defined as a sum of n independent Bernoulli(p) random variables.
+```{r}
+n <- 100
+p <- 0.5
+B <- 10000
+set.seed(123)
+sample1 <- replicate(B, {
+    sum(ifelse(runif(n, 0, 1) > p, 1, 0))
+})
+```
+
+#2. Compare performance of your function with rbinom() using microbenchmark() function.
+```{r}
+set.seed(123)
+sample2 <- rbinom(B, n, p)
+# compare the summary
+summary(sample1)
+summary(sample2)
+# use microbenchmark
+microbenchmark(sample1, sample2)
+```
+
+#3. Suppose we want to simulate data from a linear regression model: Fit a linear regression model and plot fitted values vs residuals using ggplot() function. Please do not forget to use set.seed() function for reproducibility.
+```{r}
+N <- 50
+set.seed(123)
+x <- sample(seq(from = 20, to = 40, by = 0.1), N, replace=TRUE) 
+y <- 15 + (0.4 * x) + rnorm(N, 0, 3)
+fit <- lm(y ~ x)
+fit_df = data.frame(fitted = fit$fitted.values, res = fit$residuals)
+ggplot(data = fit_df, aes(x = fitted, y = res)) +
+    geom_point() +
+    xlab("Fitted values") +
+    ylab("Residuals") +
+    ggtitle("A linear regression model")
+```
+
+#4.Write a function that generates normal variates using Box-Muller algorithm. Compare simulated data from your function with simulated data from rnorm() function using ggplot() (histogram?).
+```{r}
+set.seed(123)
+n <- 1000
+R <- sqrt(-2 * log(runif(n, 0, 1)))
+theta <- 2 * pi * runif(n, 0, 1)
+X <- R * cos(theta)
+Y <- R * sin(theta)
+sample1 <- c(X, Y)
+sample2 <- rnorm(2 * n, 0, 1)
+ggplot() +
+    geom_histogram(aes(sample1), fill = "chocolate", alpha = 0.2, bins = 10) +
+    geom_histogram(aes(sample2), fill = "blue", alpha = 0.2, bins = 10) +
+    xlab("Box-Muller and rnorm Method")
+```
+We can see that the two histgrams are very similar.
